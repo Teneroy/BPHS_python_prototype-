@@ -15,7 +15,10 @@ def find_marker(image):
     cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
     c = max(cnts, key=cv2.contourArea)
-
+    # cv2.imshow("image", edged)
+    # cv2.waitKey(0)
+    print "C: "
+    print cv2.minAreaRect(c)
     # compute the bounding box of the of the paper region and return it
     return cv2.minAreaRect(c)
 
@@ -25,7 +28,7 @@ def distance_to_camera(knownWidth, focalLength, perWidth):
 
 # initialize the known distance from the camera to the object, which
 # in this case is 24 inches
-KNOWN_DISTANCE = 24.0
+KNOWN_DISTANCE = 47.24
 
 # initialize the known object width, which in this case, the piece of
 # paper is 12 inches wide
@@ -46,7 +49,7 @@ for imagePath in sorted(paths.list_images("C:\\BPHS_python_prototype-\\images"))
     image = cv2.imread(imagePath)
     marker = find_marker(image)
     inches = distance_to_camera(KNOWN_WIDTH, focalLength, marker[1][0])
-
+    print "Marker: ", marker[1][0]
     # draw a bounding box around the image and display it
     box = cv2.boxPoints(marker) if imutils.is_cv2() else cv2.boxPoints(marker)
     box = np.int0(box)
@@ -54,7 +57,6 @@ for imagePath in sorted(paths.list_images("C:\\BPHS_python_prototype-\\images"))
     cv2.putText(image, "%.2fft" % (inches / 12),
         (image.shape[1] - 200, image.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX,
         2.0, (0, 255, 0), 3)
-    print inches
     cv2.resize(image, (520, 1060))
     cv2.imshow("image", image)
     cv2.waitKey(0)
