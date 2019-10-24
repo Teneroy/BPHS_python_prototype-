@@ -32,7 +32,7 @@ def decode_predictions(scores, geometry):
 		for x in range(0, numCols):
 			# if our score does not have sufficient probability,
 			# ignore it
-			if scoresData[x] < args["min_confidence"]:
+			if scoresData[x] < args["min-confidence"]:
 				continue
 
 			# compute the offset factor as our resulting feature
@@ -82,11 +82,12 @@ def decode_predictions(scores, geometry):
 args = vars()
 
 args["east"] = "C:\\BPHS_python_prototype-\\frozen_east_text_detection.pb"
-args["video"] = False
-args["width"] = 320
-args["height"] = 320
+args["video"] = True
+args["width"] = 15*32
+args["height"] = 15*32
 args["min-confidence"] = 0.5
 
+print args
 # initialize the original frame dimensions, new frame dimensions,
 # and ratio between the dimensions
 (W, H) = (None, None)
@@ -96,40 +97,42 @@ args["min-confidence"] = 0.5
 # define the two output layer names for the EAST detector model that
 # we are interested -- the first is the output probabilities and the
 # second can be used to derive the bounding box coordinates of text
-layerNames = [
-	"feature_fusion/Conv_7/Sigmoid",
-	"feature_fusion/concat_3"]
+#layerNames = ["feature_fusion/Conv_7/Sigmoid","feature_fusion/concat_3"]
+layerNames = []
+layerNames.append("feature_fusion/Conv_7/Sigmoid")
+layerNames.append("feature_fusion/concat_3")
 
 # load the pre-trained EAST text detector
 print("[INFO] loading EAST text detector...")
 net = cv2.dnn.readNet(args["east"])
 
 # if a video path was not supplied, grab the reference to the web cam
-if not args.get("video", False):
-	print("[INFO] starting video stream...")
-	vs = VideoStream(src=0).start()
-	time.sleep(1.0)
-
-# otherwise, grab a reference to the video file
-else:
-	vs = cv2.VideoCapture(args["video"])
+print("[INFO] starting video stream...")
+vs = VideoStream(src=0).start()
+time.sleep(1.0)
 
 # start the FPS throughput estimator
 fps = FPS().start()
-
+# while True:
+# 	frame = vs.read()
+# 	frame = cv2.resize(frame, (480, 480))
+# 	cv2.imshow("image", frame)
+# 	key = cv2.waitKey(20)
+# 	if key == 27:  # exit on ESC
+# 		break
 # loop over frames from the video stream
 while True:
 	# grab the current frame, then handle if we are using a
 	# VideoStream or VideoCapture object
 	frame = vs.read()
-	frame = frame[1] if args.get("video", False) else frame
+	#frame = frame[1] if args.get("video", False) else frame
 
 	# check to see if we have reached the end of the stream
 	if frame is None:
 		break
 
 	# resize the frame, maintaining the aspect ratio
-	frame = imutils.resize(frame, width=1000)
+	#frame = imutils.resize(frame, width=(15*32))
 	orig = frame.copy()
 
 	# if our frame dimensions are None, we still need to compute the
@@ -141,13 +144,17 @@ while True:
 
 	# resize the frame, this time ignoring aspect ratio
 	frame = cv2.resize(frame, (newW, newH))
-
+	#print newW, newH
 	# construct a blob from the frame and then perform a forward pass
 	# of the model to obtain the two output layer sets
-	blob = cv2.dnn.blobFromImage(frame, 1.0, (newW, newH),
-		(123.68, 116.78, 103.94), swapRB=True, crop=False)
+	blob = cv2.dnn.blobFromImage(frame, 1.0, (newW, newH), (123.68, 116.78, 103.94), swapRB=True, crop=False)
 	net.setInput(blob)
-	(scores, geometry) = net.forward(layerNames)
+	#print layerNames
+	#cv2.imshow("image", frame)
+	# cv2.waitKey(0)
+	output = net.forward(layerNames)
+	scores = output[0]
+	geometry = output[1]
 
 	# decode the predictions, then  apply non-maxima suppression to
 	# suppress weak, overlapping bounding boxes
