@@ -159,6 +159,7 @@ while True:
 	# decode the predictions, then  apply non-maxima suppression to
 	# suppress weak, overlapping bounding boxes
 	(rects, confidences) = decode_predictions(scores, geometry)
+	print rects
 	boxes = non_max_suppression(np.array(rects), probs=confidences)
 
 	# loop over the bounding boxes
@@ -189,12 +190,7 @@ print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
 # if we are using a webcam, release the pointer
-if not args.get("video", False):
-	vs.stop()
-
-# otherwise, release the file pointer
-else:
-	vs.release()
+vs.stop()
 
 # close all windows
 cv2.destroyAllWindows()
