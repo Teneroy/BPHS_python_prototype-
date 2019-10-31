@@ -26,7 +26,7 @@ class TextDetect(Thread):
             cv2.imshow("Output", im)
             k = cv2.waitKey(1) & 0xff
             print fm
-            if fm > 190.0:
+            if fm < 50.0:
                 break
         filename = "saved_img.jpg"
         cv2.imwrite(filename, frame)

@@ -13,6 +13,7 @@ class Viewer(Thread):
         Thread.__init__(self)
         self.classes = None
         self.net = None
+        self.runnig = True
 
     def setNet(self, proto, model):
         self.net = cv2.dnn.readNetFromCaffe(proto, model)
@@ -32,6 +33,9 @@ class Viewer(Thread):
         self.net.setInput(blob)
         return self.net.forward()
 
+    def stop(self):
+        self.runnig = False
+
     def printPrediction(self, index, conf, frame, sx, sy, ex, ey, colors):
         label = "{}: {:.2f}%".format(self.classes[index], conf * 100)
         cv2.rectangle(frame, (sx, sy), (ex, ey), colors[index], 2)
@@ -46,7 +50,8 @@ class Viewer(Thread):
         time.sleep(2.0)
         fps = FPS().start()
         # loop over the frames from the video stream
-        while True:
+        while self.runnig:
+            #print self.runnig
             # grab the frame from the threaded video stream and resize it
             # to have a maximum width of 400 pixels
             frame = self.getFrame(vs, 600)
