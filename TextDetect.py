@@ -1,23 +1,26 @@
 import cv2
 from imutils.video import VideoStream
 from VoiceRec import VoiceRec
-from threading import Thread
+#from threading import Thread
 from PIL import Image
 import pytesseract
 
 
-class TextDetect(Thread):
+class TextDetect():
 
     def __init__(self, ln):
-        Thread.__init__(self)
+        #Thread.__init__(self)
         self.lang = ln
         self.voice = VoiceRec()
         self.voice.setLang('en' if self.lang == 'eng' else self.lang)
+        self.vs = None
+
+    def setVideoStream(self, vs):
+        self.vs = vs
 
     def takePicture(self):
-        vs = VideoStream(0).start()
         while True:
-            frame = vs.read()
+            frame = self.vs.read()
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             fm = cv2.Laplacian(gray, cv2.CV_64F).var()
             # Sample quality bar. Parameters adjusted manually to fit horizontal image size
@@ -35,7 +38,7 @@ class TextDetect(Thread):
     def readText(self, filename):
         return pytesseract.image_to_string(Image.open('C:\\BPHS_python_prototype-\\' + filename), lang=self.lang).encode('utf-8')
 
-    def run(self):
+    def startTextDetection(self):
         filename = self.takePicture()
         #print filename
         text = self.readText(filename)

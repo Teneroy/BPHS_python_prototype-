@@ -4,16 +4,19 @@ import numpy as np
 import imutils
 import time
 import cv2
-from threading import Thread
+# from threading import Thread
 
 
-class Viewer(Thread):
+class Viewer:
 
     def __init__(self):
-        Thread.__init__(self)
         self.classes = None
         self.net = None
         self.runnig = True
+        self.vs = None
+
+    def setVideoStream(self, vs):
+        self.vs = vs
 
     def setNet(self, proto, model):
         self.net = cv2.dnn.readNetFromCaffe(proto, model)
@@ -38,32 +41,33 @@ class Viewer(Thread):
 
     def printPrediction(self, index, conf, frame, sx, sy, ex, ey, colors):
         label = "{}: {:.2f}%".format(self.classes[index], conf * 100)
+        #print "LABEL: ", label
         cv2.rectangle(frame, (sx, sy), (ex, ey), colors[index], 2)
         y = sy - 15 if sy - 15 > 15 else sy + 15
         cv2.putText(frame, label, (sx, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[index], 2)
 
     #vsrc = 0, width = 600
-    def startDistanceView(self, vsrc, wd):
+    def startDistanceView(self, wd):
         COLORS = np.random.uniform(0, 255, size=(len(self.classes), 3))
         print("[INFO] starting video stream...")
-        vs = VideoStream(vsrc).start()
+
         time.sleep(2.0)
         fps = FPS().start()
         # loop over the frames from the video stream
         while self.runnig:
-            #print self.runnig
             # grab the frame from the threaded video stream and resize it
             # to have a maximum width of 400 pixels
-            frame = self.getFrame(vs, 600)
+            frame = self.getFrame(self.vs, wd)
             # grab the frame dimensions and convert it to a blob
             (h, w) = frame.shape[:2]
             blob = self.convertToBlob(frame)
             # # pass the blob through the network and obtain the detections and
             # # predictions
             detections = self.makeDetections(blob)
-            # print detections
             # # loop over the detections
+            data = []
             for i in np.arange(0, detections.shape[2]):
+                #print np.arange(0, detections.shape[2])
                 # extract the confidence (i.e., probability) associated with
                 # the prediction
                 confidence = detections[0, 0, i, 2]
@@ -78,9 +82,11 @@ class Viewer(Thread):
                     (startX, startY, endX, endY) = box.astype("int")
                     # draw the prediction on the frame
                     self.printPrediction(idx, confidence, frame, startX, startY, endX, endY, COLORS)
+                    data.append(self.classes[idx])
                 # show the output frame
-                cv2.imshow("Frame", frame)
+                #cv2.imshow("Frame", frame)
                 fps.update()
+            print data
             key = cv2.waitKey(20)
             if key == 27:  # exit on ESC
                 break
@@ -90,7 +96,6 @@ class Viewer(Thread):
         print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         # do a bit of cleanup
         cv2.destroyAllWindows()
-        vs.stop()
 
-    def run(self):
-        self.startDistanceView(0, 600)
+    # def run(self):
+    #     self.startDistanceView(0, 600)
