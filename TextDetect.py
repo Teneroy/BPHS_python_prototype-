@@ -6,8 +6,12 @@ from PIL import Image
 import pytesseract
 
 
-class TextDetect():
+class textdetect_t:
+    def __init__(self, text=''):
+        self.text = text
 
+
+class TextDetect:
     def __init__(self, ln):
         #Thread.__init__(self)
         self.lang = ln
@@ -38,13 +42,14 @@ class TextDetect():
     def readText(self, filename):
         return pytesseract.image_to_string(Image.open('C:\\BPHS_python_prototype-\\' + filename), lang=self.lang).encode('utf-8')
 
-    def startTextDetection(self):
+    def detectText(self):
         filename = self.takePicture()
         #print filename
         text = self.readText(filename)
         #print text
-        filepath = self.voice.textToFile(text)
-        self.voice.runFile(filepath)
+        # filepath = self.voice.textToFile(text)
+        # self.voice.runFile(filepath)
+        return text
 
 
 # ob = TextDetect('eng')
