@@ -58,25 +58,27 @@ class VideoModule(Thread):
 
     def setOperationType(self, operation):
         self.operation_type = operation
+        if self.operation_type != 'TextReading' and self.text.focusing == True:
+            self.text.stopFocusing()
 
     def getData(self):
         return self.data
 
     def textDetectionMode(self):
-        self.data = self.text.detectText()
-        self.waitForOperation('TextReading')
+        self.data.setText(self.text.textDetect())
+        #self.waitForOperation('TextReading')
 
     def waitForOperation(self, operation_name):
-        while self.operation_type == 'TextReading' and self.running:
+        while self.operation_type == operation_name and self.running:
             pass
 
     def objectDetectionMode(self, wd=600):
         COLORS = np.random.uniform(0, 255, size=(21, 3))
         print("[INFO] starting video stream...")
         time.sleep(2.0)
-        fps = FPS().start()
+        #fps = FPS().start()
         data = data_arr_t()
-        while self.running:
+        while self.running and self.operation_type == 'ObjectDetection':
             # grab the frame from the threaded video stream and resize it
             # to have a maximum width of 400 pixels
             frame = self.view.getFrame(self.vs, wd)
@@ -105,16 +107,16 @@ class VideoModule(Thread):
                     data.appendElem(viewer_t(self.view.classes[idx], 10))
                 # show the output frame
                 cv2.imshow("Frame", frame)
-                fps.update()
+                #fps.update()
             self.data = videomodule_t(data, textdetect_t(), 2, 0)
             data.freeArr()
             key = cv2.waitKey(20)
             if key == 27:  # exit on ESC
                 break
         # stop the timer and display FPS information
-        fps.stop()
-        print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-        print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+        #fps.stop()
+        #print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+        #print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
         # do a bit of cleanup
         cv2.destroyAllWindows()
 
@@ -125,6 +127,7 @@ class VideoModule(Thread):
         self.vs = VideoStream(0).start()
         self.view.setVideoStream(self.vs)
         self.text.setVideoStream(self.vs)
+        self.text.start()
         while self.running:
             if self.operation_type == 'TextReading':
                 # change string comparing later
@@ -139,6 +142,12 @@ class VideoModule(Thread):
 
 ob = VideoModule()
 ob.start()
+i = 0
 while True:
     time.sleep(2)
+    i += 1
     ob.getData().printModData()
+    if i % 10 == 0:
+        ob.setOperationType('TextReading')
+    if i % 20 == 0:
+        ob.setOperationType('ObjectDetection')

@@ -1,7 +1,7 @@
 import cv2
 from imutils.video import VideoStream
 from VoiceRec import VoiceRec
-#from threading import Thread
+from threading import Thread
 from PIL import Image
 import pytesseract
 
@@ -11,19 +11,28 @@ class textdetect_t:
         self.text = text
 
 
-class TextDetect:
+class TextDetect(Thread):
     def __init__(self, ln):
-        #Thread.__init__(self)
+        Thread.__init__(self)
         self.lang = ln
         self.voice = VoiceRec()
         self.voice.setLang('en' if self.lang == 'eng' else self.lang)
         self.vs = None
+        self.threadrun = False
+        self.focusing = False
 
     def setVideoStream(self, vs):
         self.vs = vs
 
+    def stopFocusing(self):
+        self.focusing = False
+
+    def stop(self):
+        self.threadrun = False
+
     def takePicture(self):
-        while True:
+        self.focusing = True
+        while self.focusing:
             frame = self.vs.read()
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             fm = cv2.Laplacian(gray, cv2.CV_64F).var()
@@ -42,15 +51,21 @@ class TextDetect:
     def readText(self, filename):
         return pytesseract.image_to_string(Image.open('C:\\BPHS_python_prototype-\\' + filename), lang=self.lang).encode('utf-8')
 
-    def detectText(self):
+    def textDetect(self):
         filename = self.takePicture()
-        #print filename
+        if filename == '':
+            return ''
+        # print filename
         text = self.readText(filename)
-        #print text
+        # print text
         # filepath = self.voice.textToFile(text)
         # self.voice.runFile(filepath)
         return text
 
+    def run(self):
+        self.threadrun = True
+        while self.threadrun:
+            pass
 
 # ob = TextDetect('eng')
 # ob.start()
