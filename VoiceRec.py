@@ -20,3 +20,7 @@ class VoiceRec:
 
     def setLang(self, lang):
         self.tts.lang = lang
+
+# a = VoiceRec()
+# file = a.textToFile("Because they were built very well")
+# a.runFile(file)

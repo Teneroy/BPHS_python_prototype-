@@ -3,6 +3,7 @@ from imutils import paths
 import numpy as np
 import imutils
 import cv2
+import time
 
 def find_marker(image):
     # convert the image to grayscale, blur it, and detect edges
@@ -39,6 +40,8 @@ KNOWN_WIDTH = 6.2
 # the focal length
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
 image = cv2.imread("C:\\BPHS_python_prototype-\\images\\4ft.jpg")
+#cv2.imshow("image", image)
+#time.sleep(10)
 marker = find_marker(image)
 focalLength = (marker[1][0] * KNOWN_DISTANCE) / KNOWN_WIDTH
 print focalLength
@@ -47,6 +50,9 @@ for imagePath in sorted(paths.list_images("C:\\BPHS_python_prototype-\\images"))
     # load the image, find the marker in the image, then compute the
     # distance to the marker from the camera
     image = cv2.imread(imagePath)
+    cv2.imshow("image", image)
+    cv2.waitKey(0)
+    #time.sleep(10)
     marker = find_marker(image)
     inches = distance_to_camera(KNOWN_WIDTH, focalLength, marker[1][0])
     print "Marker: ", marker[1][0]
