@@ -58,7 +58,7 @@ class VideoModule(Thread):
 
     def setOperationType(self, operation):
         self.operation_type = operation
-        if self.operation_type != 'TextReading' and self.text.focusing == True:
+        if self.operation_type != 'TextReading' and self.text.focusing:
             self.text.stopFocusing()
 
     def getData(self):

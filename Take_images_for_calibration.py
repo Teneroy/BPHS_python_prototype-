@@ -8,6 +8,7 @@
 
 import numpy as np
 import cv2
+from imutils.video import VideoStream
 
 print('Starting the Calibration. Press and maintain the space bar to exit the script\n')
 print('Push (s) to save the image you want and push (c) to see next frame without saving the image')
@@ -16,11 +17,12 @@ id_image=0
 
 # termination criteria
 criteria =(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-
+print "Call the two cameras"
 # Call the two cameras
-CamR= cv2.VideoCapture(0)   # 0 -> Right Camera
-CamL= cv2.VideoCapture(2)   # 2 -> Left Camera
-
+CamR= cv2.VideoCapture(1)  # 0 -> Right Camera
+print CamR
+CamL= cv2.VideoCapture(2)  # 2 -> Left Camera
+print CamL
 while True:
     retR, frameR= CamR.read()
     retL, frameL= CamL.read()
