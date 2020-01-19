@@ -9,6 +9,7 @@ from TextDetect import textdetect_t
 import time
 import numpy as np
 import cv2
+import copy
 
 
 class videomodule_t(data_arr_t, textdetect_t):
@@ -35,12 +36,13 @@ class videomodule_t(data_arr_t, textdetect_t):
     def printModData(self):
         for i in range(len(self.arr)):
             print '{object: ', self.arr[i].object, ', distance: ', self.arr[i].distance, '}'
-        print self.text
-        print self.priority
-        print self.operation
+        # print self.text
+        # print self.priority
+        # print self.operation
+
 
 class VideoModule(Thread):
-    def __init__(self):
+    def __init__(self, vnum=0):
         Thread.__init__(self)
         self.vs = None
         self.view = Viewer()
@@ -55,6 +57,7 @@ class VideoModule(Thread):
                          "C:\\BPHS_python_prototype-\\MobileNetSSD_deploy.caffemodel")
         self.running = True
         self.operation_type = 'ObjectDetection'
+        self.videonum = vnum
 
     def setOperationType(self, operation):
         self.operation_type = operation
@@ -105,10 +108,11 @@ class VideoModule(Thread):
                     # draw the prediction on the frame
                     self.view.printPrediction(idx, confidence, frame, startX, startY, endX, endY, COLORS)
                     data.appendElem(viewer_t(self.view.classes[idx], 10))
+                    #print data.arr[0].object
                 # show the output frame
                 cv2.imshow("Frame", frame)
                 #fps.update()
-            self.data = videomodule_t(data, textdetect_t(), 2, 0)
+            self.data = videomodule_t(copy.deepcopy(data), textdetect_t(), 2, 0)
             data.freeArr()
             key = cv2.waitKey(20)
             if key == 27:  # exit on ESC
@@ -124,7 +128,7 @@ class VideoModule(Thread):
         self.running = False
 
     def run(self):
-        self.vs = VideoStream(0).start()
+        self.vs = VideoStream(self.videonum).start()
         self.view.setVideoStream(self.vs)
         self.text.setVideoStream(self.vs)
         self.text.start()
@@ -140,7 +144,7 @@ class VideoModule(Thread):
 # ob = VideoModule()
 # ob.run()
 
-ob = VideoModule()
+ob = VideoModule(0)
 ob.start()
 i = 0
 while True:

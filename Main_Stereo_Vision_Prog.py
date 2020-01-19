@@ -28,8 +28,6 @@ kernel = np.ones((3, 3), np.uint8)
 
 
 def coords_mouse_disp(event, x, y, flags, param):
-    print "clicked"
-    print event
     if event == cv2.EVENT_LBUTTONDBLCLK:
         # print x,y,disp[y,x],filteredImg[y,x]
         average = 0
@@ -78,8 +76,9 @@ imgpointsL = []
 print('Starting calibration for the 2 cameras... ')
 # Call all saved images
 for i in range(0,
-               52):  # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
+               53):  # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
     t = str(i)
+    print t
     ChessImaR = cv2.imread('chessboard-R' + t + '.png', 0)  # Right side
     ChessImaL = cv2.imread('chessboard-L' + t + '.png', 0)  # Left side
     retR, cornersR = cv2.findChessboardCorners(ChessImaR,

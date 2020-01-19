@@ -52,6 +52,8 @@ while True:
             cv2.imwrite('chessboard-R'+str_id_image+'.png',frameR) # Save the image in the file where this Programm is located
             cv2.imwrite('chessboard-L'+str_id_image+'.png',frameL)
             id_image=id_image+1
+            cv2.destroyWindow('VideoL')
+            cv2.destroyWindow('VideoR')
         else:
             print('Images not saved')
 
