@@ -20,6 +20,14 @@ class DistanceDetect(Thread):
         self.ChessImaR = None
         self.ChessImaL = None
         self.kernel = np.ones((3, 3), np.uint8)
+        self.left_stereo_map = None
+        self.right_stereo_map = None
+        self.stereo = None
+        self.stereoR = None
+        self.wls_filter = None
+        #????
+        self.min_disp = 2
+        self.num_disp = 130 - self.min_disp
 
     def coords_mouse_disp(event, x, y, flags, param, disp): #private
         if event == cv2.EVENT_LBUTTONDBLCLK:
@@ -92,7 +100,7 @@ class DistanceDetect(Thread):
                                                        ChessImaR.shape[::-1], cv2.CV_16SC2)
         return Left_Stereo_Map, Right_Stereo_Map
 
-    def createStereoSGBM(self, window_size, min_disp):
+    def createStereoSGBM(self, window_size, min_disp, num_disp):
         stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
                                        numDisparities=num_disp,
                                        blockSize=window_size,
@@ -157,34 +165,40 @@ class DistanceDetect(Thread):
         disp_Color = cv2.applyColorMap(dispC,
                                        cv2.COLORMAP_OCEAN)  # Change the Color of the Picture into an Ocean Color_Map
         filt_Color = cv2.applyColorMap(filteredImg, cv2.COLORMAP_OCEAN)
-
-        # Show the result for the Depth_image
-        # cv2.imshow('Disparity', disp)
-        # cv2.imshow('Closing',closing)
-        # cv2.imshow('Color Depth',disp_Color)
         cv2.imshow('Filtered Color Depth', filt_Color)
         return disp
 
-    def calculateRectangleDistance(self, disp): #private
-        average = 0
-        # for u in range(-1, 2):
-        #     for v in range(-1, 2):
-        #         average += disp[y + u, x + v]
+    def calculateRectangleDistance(self, disp, rect): #private
         temp = []
-        for i in range(len(disp)):
-            for j in range(len(disp[i])):
+        for i in range(rect["ystart"], rect["yend"]):
+            for j in range(rect["xstart"], rect["xend"]):
                 temp.append(disp[i][j])
-        average = temp[round(len(temp) / 2.0)]
-        average = average / 9
+        average = temp[int(round(len(temp) / 2.0))]
+        average = average / ( (abs(rect["ystart"] - rect["yend"])) * (abs(rect["xstart"] - rect["xend"])) )
         Distance = -593.97 * average ** (3) + 1506.8 * average ** (2) - 1373.1 * average + 522.06
         Distance = np.around(Distance * 0.01, decimals=2)
         print('Distance: ' + str(Distance) + ' m')
         return Distance
 
-    def getDistance(self): #public
-        dispar = self.makeDepthMap()
-        return self.getDistance(dispar)
+    def preprocessDepthMap(self):
+        retR, mtxR, distR, rvecsR, tvecsR, OmtxR, roiR = self.determinateCameraParams(self.objpoints, self.imgpointsR,
+                                                                                      self.ChessImaR)
+        retL, mtxL, distL, rvecsL, tvecsL, OmtxL, roiL = self.determinateCameraParams(self.objpoints, self.imgpointsL,
+                                                                                      self.ChessImaL)
+        self.left_stereo_map, self.right_stereo_map = self.calibrateCameraForStereo(self.objpoints, self.imgpointsL,
+                                                                                    self.imgpointsR, mtxL, distL, mtxR,
+                                                                                    distR, self.ChessImaR,
+                                                                                    self.criteria_stereo)
+        self.stereo, self.stereoR = self.createStereoSGBM(3, self.min_disp, self.num_disp)
+        self.wls_filter = self.setFilterParams(80000, 1.8, self.stereo)
 
+
+    def getDistance(self, rect, frameL, frameR, startX, startY, endX, endY): #public
+        # frameL, frameR, Left_Stereo_Map, Right_Stereo_Map, stereo, stereoR, wls_filter, min_disp, num_disp, kernel
+        dispar = self.makeDepthMap(frameL, frameR, self.left_stereo_map, self.right_stereo_map, self.stereo,
+                                   self.stereoR, self.wls_filter, self.min_disp, self.num_disp, self.kernel)
+        rect = {"xstart": startX, "ystart": startY, "xend": endX, "yend": endY}
+        return self.calculateRectangleDistance(dispar, rect)
 
     def run(self):
         print('Cameras Ready to use')
@@ -203,7 +217,6 @@ class DistanceDetect(Thread):
             retR, frameR = CamR.read()
             retL, frameL = CamL.read()
 
-            # Mouse click
             print self.getDistance()
 
             # End the Programme

@@ -62,9 +62,9 @@ class Viewer:
     def setClasses(self, cl):
         self.classes = cl
 
-    def getFrame(self, vstream, width):
+    def getFrame(self, vstream, width=600):
         frame = vstream.read()
-        frame = imutils.resize(frame, width=1000)
+        frame = imutils.resize(frame, width)
         return frame
 
     def convertToBlob(self, frame):

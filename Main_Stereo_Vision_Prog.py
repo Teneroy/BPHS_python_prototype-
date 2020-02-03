@@ -26,19 +26,32 @@ from sklearn.preprocessing import normalize
 # Filtering
 kernel = np.ones((3, 3), np.uint8)
 
+tX = 0
+tY = 0
 
+def coords_count_avg(cnt):
+    # print x,y,disp[y,x],filteredImg[y,x]
+    average = 0
+    for u in range(-3, 4):
+        for v in range(-3, 4):
+            average += disp[tY + u, tX + v]
+    average = average / 49
+    Distance = -593.97 * average ** (3) + 1506.8 * average ** (2) - 1373.1 * average + 522.06
+    Distance = np.around(Distance * 0.01, decimals=2)
+    print('Distance: ' + str(Distance) + ' m')
+    return Distance
+
+
+click_flag = False
 def coords_mouse_disp(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDBLCLK:
-        # print x,y,disp[y,x],filteredImg[y,x]
-        average = 0
-        for u in range(-1, 2):
-            for v in range(-1, 2):
-                average += disp[y + u, x + v]
-        average = average / 9
-        Distance = -593.97 * average ** (3) + 1506.8 * average ** (2) - 1373.1 * average + 522.06
-        Distance = np.around(Distance * 0.01, decimals=2)
-        print('Distance: ' + str(Distance) + ' m')
-
+        global click_flag
+        global tX
+        tX = x
+        global tY
+        tY = y
+        click_flag = True
+        print click_flag
 
 # This section has to be uncommented if you want to take mesurements and store them in the excel
 ##        ws.append([counterdist, average])
@@ -71,12 +84,11 @@ objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
 objpoints = []  # 3d points in real world space
 imgpointsR = []  # 2d points in image plane
 imgpointsL = []
-
 # Start calibration from the camera
 print('Starting calibration for the 2 cameras... ')
 # Call all saved images
 for i in range(0,
-               53):  # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
+               59):  # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
     t = str(i)
     print t
     ChessImaR = cv2.imread('chessboard-R' + t + '.png', 0)  # Right side
@@ -172,7 +184,7 @@ stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
 stereoR = cv2.ximgproc.createRightMatcher(stereo)  # Create another stereo for right this time
 
 # WLS FILTER Parameters
-lmbda = 140000
+lmbda = 80000
 sigma = 1.8
 visual_multiplier = 1.0
 
@@ -185,13 +197,18 @@ wls_filter.setSigmaColor(sigma)
 # *************************************
 
 # Call the two cameras
-CamR = cv2.VideoCapture(1)  # Wenn 0 then Right Cam and wenn 2 Left Cam
-CamL = cv2.VideoCapture(2)
+CamM = cv2.VideoCapture(2)
+CamR = cv2.VideoCapture(0)  # Wenn 0 then Right Cam and wenn 2 Left Cam
+CamL = cv2.VideoCapture(1)
 
+counter = 0
+click_flag = False
+sumdist = 0
 while True:
     # Start Reading Camera images
     retR, frameR = CamR.read()
     retL, frameL = CamL.read()
+    retM, frameM = CamM.read()
 
     # Rectify the images on rotation and alignement
     Left_nice = cv2.remap(frameL, Left_Stereo_Map[0], Left_Stereo_Map[1], cv2.INTER_LANCZOS4, cv2.BORDER_CONSTANT,
@@ -210,6 +227,7 @@ while True:
     # Show the Undistorted images
     cv2.imshow('Both Images', np.hstack([Left_nice, Right_nice]))
     cv2.imshow('Normal', np.hstack([frameL, frameR]))
+    cv2.imshow('mid', frameM)
 
     # Convert from color(BGR) to gray
     grayR = cv2.cvtColor(Right_nice, cv2.COLOR_BGR2GRAY)
@@ -252,6 +270,20 @@ while True:
 
     # Mouse click
     cv2.setMouseCallback("Filtered Color Depth", coords_mouse_disp, filt_Color)
+
+    print click_flag
+
+    if click_flag:
+        sumdist += coords_count_avg(counter)
+        counter += 1
+        print counter
+        if counter == 3:
+            print sumdist / 3
+            counter = 0
+            sumdist = 0
+            click_flag = False
+
+
 
     # End the Programme
     if cv2.waitKey(1) & 0xFF == ord(' '):

@@ -19,10 +19,9 @@ id_image=0
 criteria =(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 print "Call the two cameras"
 # Call the two cameras
-CamR= cv2.VideoCapture(1)  # 0 -> Right Camera
-print CamR
-CamL= cv2.VideoCapture(2)  # 2 -> Left Camera
-print CamL
+CamM = cv2.VideoCapture(2)
+CamR = cv2.VideoCapture(0)  # Wenn 0 then Right Cam and wenn 2 Left Cam
+CamL = cv2.VideoCapture(1)
 while True:
     retR, frameR= CamR.read()
     retL, frameL= CamL.read()
