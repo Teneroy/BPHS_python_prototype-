@@ -115,6 +115,7 @@ class VideoModule(Thread):
                     # draw the prediction on the frame
                     self.view.printPrediction(idx, confidence, frame, startX, startY, endX, endY, COLORS)
                     dist = self.distance.getDistance(frame, frameR, startX, startY, endX, endY)
+                    print dist
                     data.appendElem(viewer_t(self.view.classes[idx], dist))
                     #print data.arr[0].object
                 # show the output frame
@@ -136,13 +137,19 @@ class VideoModule(Thread):
         self.running = False
 
     def run(self):
+        print "start"
         self.vs = VideoStream(self.videonum).start()
         self.vs2 = VideoStream(self.videonum2).start()
+        print self.vs
+        print self.vs2
         self.view.setVideoStream(self.vs)
         self.text.setVideoStream(self.vs)
         self.text.start()
+        print "text started"
         self.distance.preprocessDepthMap()
+        print "start while"
         while self.running:
+            print "thread iteration"
             if self.operation_type == 'TextReading':
                 # change string comparing later
                 self.textDetectionMode()
@@ -154,7 +161,7 @@ class VideoModule(Thread):
 # ob = VideoModule()
 # ob.run()
 
-ob = VideoModule(0)
+ob = VideoModule(0, 1)
 ob.start()
 i = 0
 while True:

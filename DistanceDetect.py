@@ -2,12 +2,9 @@ import numpy as np
 import cv2
 #from openpyxl import Workbook  # Used for writing data into an Excel file
 from sklearn.preprocessing import normalize
-from threading import Thread
 
-
-class DistanceDetect(Thread):
+class DistanceDetect():
     def __init__(self):
-        Thread.__init__(self)
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         self.criteria_stereo = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         # Prepare object points
@@ -48,27 +45,30 @@ class DistanceDetect(Thread):
                        53):  # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
             t = str(i)
             print t
-            ChessImaR = cv2.imread('chessboard-R' + t + '.png', 0)  # Right side
-            ChessImaL = cv2.imread('chessboard-L' + t + '.png', 0)  # Left side
-            retR, cornersR = cv2.findChessboardCorners(ChessImaR,
+            self.ChessImaR = cv2.imread('chessboard-R' + t + '.png', 0)  # Right side
+            self.ChessImaL = cv2.imread('chessboard-L' + t + '.png', 0)  # Left side
+            retR, cornersR = cv2.findChessboardCorners(self.ChessImaR,
                                                        (9, 6),
                                                        None)  # Define the number of chees corners we are looking for
-            retL, cornersL = cv2.findChessboardCorners(ChessImaL,
+            retL, cornersL = cv2.findChessboardCorners(self.ChessImaL,
                                                        (9, 6), None)  # Left side
             if (True == retR) & (True == retL):
                 self.objpoints.append(self.objp)
-                cv2.cornerSubPix(ChessImaR, cornersR, (11, 11), (-1, -1), self.criteria)
-                cv2.cornerSubPix(ChessImaL, cornersL, (11, 11), (-1, -1), self.criteria)
+                cv2.cornerSubPix(self.ChessImaR, cornersR, (11, 11), (-1, -1), self.criteria)
+                cv2.cornerSubPix(self.ChessImaL, cornersL, (11, 11), (-1, -1), self.criteria)
                 self.imgpointsR.append(cornersR)
                 self.imgpointsL.append(cornersL)
 
     def determinateCameraParams(self, objpoints, imgpoints, ChessIma): #private
+        print "start D"
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints,
                                                                 imgpoints,
                                                                 ChessIma.shape[::-1], None, None)
+        print "1 D"
         h, w = ChessIma.shape[:2]
         Omtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist,
                                                     (w, h), 1, (w, h))
+        print "2 D"
         return ret, mtx, dist, rvecs, tvecs, Omtx, roi
 
     def calibrateCameraForStereo(self, objpoints, imgpointsL, imgpointsR, mtxL, distL, mtxR, distR, ChessImaR, criteria_stereo):
@@ -130,7 +130,7 @@ class DistanceDetect(Thread):
                                cv2.BORDER_CONSTANT, 0)
 
         # Show the Undistorted images
-        # cv2.imshow('Both Images', np.hstack([Left_nice, Right_nice]))
+        cv2.imshow('Both Images', np.hstack([Left_nice, Right_nice]))
         # cv2.imshow('Normal', np.hstack([frameL, frameR]))
 
         # Convert from color(BGR) to gray
@@ -170,63 +170,47 @@ class DistanceDetect(Thread):
 
     def calculateRectangleDistance(self, disp, rect): #private
         temp = []
+        average = 0
+        print rect
         for i in range(rect["ystart"], rect["yend"]):
             for j in range(rect["xstart"], rect["xend"]):
                 temp.append(disp[i][j])
-        average = temp[int(round(len(temp) / 2.0))]
+                average += disp[i][j]
+        #average = temp[int(round(len(temp) / 2.0))]
         average = average / ( (abs(rect["ystart"] - rect["yend"])) * (abs(rect["xstart"] - rect["xend"])) )
+        # print average
+        #print temp
+        #average = average / 49
+        # print (abs(rect["ystart"] - rect["yend"])) * (abs(rect["xstart"] - rect["xend"]))
+        # print (abs(rect["ystart"] - rect["yend"]))
+        # print (abs(rect["xstart"] - rect["xend"]))
         Distance = -593.97 * average ** (3) + 1506.8 * average ** (2) - 1373.1 * average + 522.06
+        # print Distance
         Distance = np.around(Distance * 0.01, decimals=2)
         print('Distance: ' + str(Distance) + ' m')
         return Distance
 
     def preprocessDepthMap(self):
+        print "start P1"
         retR, mtxR, distR, rvecsR, tvecsR, OmtxR, roiR = self.determinateCameraParams(self.objpoints, self.imgpointsR,
                                                                                       self.ChessImaR)
+        print "1 P1"
         retL, mtxL, distL, rvecsL, tvecsL, OmtxL, roiL = self.determinateCameraParams(self.objpoints, self.imgpointsL,
                                                                                       self.ChessImaL)
+        print "2 P1"
         self.left_stereo_map, self.right_stereo_map = self.calibrateCameraForStereo(self.objpoints, self.imgpointsL,
                                                                                     self.imgpointsR, mtxL, distL, mtxR,
                                                                                     distR, self.ChessImaR,
                                                                                     self.criteria_stereo)
+        print "3 P1"
         self.stereo, self.stereoR = self.createStereoSGBM(3, self.min_disp, self.num_disp)
+        print "4 P1"
         self.wls_filter = self.setFilterParams(80000, 1.8, self.stereo)
+        print "5 P1"
 
-
-    def getDistance(self, rect, frameL, frameR, startX, startY, endX, endY): #public
+    def getDistance(self, frameL, frameR, startX, startY, endX, endY): #public
         # frameL, frameR, Left_Stereo_Map, Right_Stereo_Map, stereo, stereoR, wls_filter, min_disp, num_disp, kernel
         dispar = self.makeDepthMap(frameL, frameR, self.left_stereo_map, self.right_stereo_map, self.stereo,
                                    self.stereoR, self.wls_filter, self.min_disp, self.num_disp, self.kernel)
         rect = {"xstart": startX, "ystart": startY, "xend": endX, "yend": endY}
         return self.calculateRectangleDistance(dispar, rect)
-
-    def run(self):
-        print('Cameras Ready to use')
-
-        # Create StereoSGBM and prepare all parameters
-        window_size = 3
-        min_disp = 2
-        num_disp = 130 - min_disp
-
-        # Call the two cameras
-        CamR = cv2.VideoCapture(1)  # Wenn 0 then Right Cam and wenn 2 Left Cam
-        CamL = cv2.VideoCapture(2)
-        # kernel = np.ones((3, 3), np.uint8)
-        while True:
-            # Start Reading Camera images
-            retR, frameR = CamR.read()
-            retL, frameL = CamL.read()
-
-            print self.getDistance()
-
-            # End the Programme
-            if cv2.waitKey(1) & 0xFF == ord(' '):
-                break
-
-        # Save excel
-        ##wb.save("data4.xlsx")
-
-        # Release the Cameras
-        CamR.release()
-        CamL.release()
-        cv2.destroyAllWindows()
