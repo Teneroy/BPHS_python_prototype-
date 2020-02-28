@@ -171,7 +171,7 @@ class DistanceDetect():
     def calculateRectangleDistance(self, disp, rect): #private
         temp = []
         average = 0
-        print rect
+       # print rect
         for i in range(rect["ystart"], rect["yend"]):
             for j in range(rect["xstart"], rect["xend"]):
                 temp.append(disp[i][j])
@@ -187,7 +187,7 @@ class DistanceDetect():
         Distance = -593.97 * average ** (3) + 1506.8 * average ** (2) - 1373.1 * average + 522.06
         # print Distance
         Distance = np.around(Distance * 0.01, decimals=2)
-        print('Distance: ' + str(Distance) + ' m')
+        #print('Distance: ' + str(Distance) + ' m')
         return Distance
 
     def preprocessDepthMap(self):

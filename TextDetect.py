@@ -41,8 +41,9 @@ class TextDetect(Thread):
             im = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_CUBIC)
             cv2.imshow("Output", im)
             k = cv2.waitKey(1) & 0xff
-            print fm
-            if fm < 50.0:
+            #print fm
+            #if fm < 50.0:
+            if k == ord('s'):
                 break
         filename = "saved_img.jpg"
         cv2.imwrite(filename, frame)
@@ -61,6 +62,11 @@ class TextDetect(Thread):
         # filepath = self.voice.textToFile(text)
         # self.voice.runFile(filepath)
         return text
+
+    def voiceText(self, text):
+        filepath = self.voice.textToFile(text)
+        print filepath
+        self.voice.runFile(filepath)
 
     def run(self):
         self.threadrun = True

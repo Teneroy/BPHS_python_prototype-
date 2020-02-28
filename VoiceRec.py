@@ -8,7 +8,7 @@ class VoiceRec:
         self.tts = gTTS(text='Initialize voice recognition', lang='en')
 
     def textToFile(self, text):
-        self.tts.text = text
+        self.tts.text = text.decode('utf-8')
         filename = "pcvoice.mp3"
         self.tts.save(filename)
         filepath = os.getcwd() + '\\' + filename

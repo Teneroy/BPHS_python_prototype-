@@ -74,6 +74,10 @@ class VideoModule(Thread):
 
     def textDetectionMode(self):
         self.data.setText(self.text.textDetect())
+        print self.data.text
+        if len(self.data.text) > 0:
+            self.text.voiceText(self.data.text)
+        #self.setOperationType('Waiting')
         #self.waitForOperation('TextReading')
 
     def waitForOperation(self, operation_name):
@@ -115,7 +119,7 @@ class VideoModule(Thread):
                     # draw the prediction on the frame
                     self.view.printPrediction(idx, confidence, frame, startX, startY, endX, endY, COLORS)
                     dist = self.distance.getDistance(frame, frameR, startX, startY, endX, endY)
-                    print dist
+                    #print dist
                     data.appendElem(viewer_t(self.view.classes[idx], dist))
                     #print data.arr[0].object
                 # show the output frame
@@ -149,7 +153,7 @@ class VideoModule(Thread):
         self.distance.preprocessDepthMap()
         print "start while"
         while self.running:
-            print "thread iteration"
+            #print "thread iteration"
             if self.operation_type == 'TextReading':
                 # change string comparing later
                 self.textDetectionMode()
@@ -161,14 +165,16 @@ class VideoModule(Thread):
 # ob = VideoModule()
 # ob.run()
 
-ob = VideoModule(0, 1)
+ob = VideoModule(1, 0)
 ob.start()
+ob.setOperationType('TextReading')
 i = 0
 while True:
     time.sleep(2)
     i += 1
     ob.getData().printModData()
     print "__________________"
+
     # if i % 10 == 0:
     #     ob.setOperationType('TextReading')
     # if i % 20 == 0:
