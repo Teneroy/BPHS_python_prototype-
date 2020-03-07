@@ -21,7 +21,7 @@ def printWay(obj):
         return
 
 
-gmaps = googlemaps.Client(key='AIzaSyC7hREX7LxMCWot2qdEj31Q2D6UF-ptPH0')
+gmaps = googlemaps.Client(key='')
 geocode_result = geocoding.geocode(gmaps, '1600 Amphitheatre Parkway, Mountain View, CA')
 print geocode_result
 # Look up an address with reverse geocoding
@@ -48,5 +48,5 @@ for ob in arr:
     printWay(ob)
 
 
-# geolocate_result = geolocation.geolocate(gmaps)
-# print geolocate_result
+geolocate_result = geolocation.geolocate(gmaps)
+print geolocate_result
