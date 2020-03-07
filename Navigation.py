@@ -1,8 +1,4 @@
 # coding=utf-8
-import copy
-
-import responses
-
 import googlemaps
 from datetime import datetime
 from googlemaps import geocoding
@@ -10,7 +6,6 @@ from googlemaps import directions
 from googlemaps import roads
 from googlemaps import elevation
 from googlemaps import geolocation
-import json
 
 
 class Navigation:
@@ -39,6 +34,8 @@ class Navigation:
         self.departure = departure
 
     def makeDirection(self, dirfrom, dirto):
+        if self.gmaps is None:
+            return "ERROR: you have to set API key"
         directions_result = directions.directions(self.gmaps, dirfrom,
                                                   dirto,
                                                   mode=self.mode,
