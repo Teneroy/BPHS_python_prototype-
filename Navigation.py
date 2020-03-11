@@ -6,6 +6,7 @@ from googlemaps import directions
 from googlemaps import roads
 from googlemaps import elevation
 from googlemaps import geolocation
+import re
 
 
 class Navigation:
@@ -52,16 +53,18 @@ class Navigation:
         return final_res
 
     def parseResult(self, obj, arr_result):
-        arr_result.append((obj['html_instructions'] + " " + obj['distance']['text']))
+        cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+        cleantext = re.sub(cleanr, '', (obj['html_instructions'] + " " + obj['distance']['text']))
+        arr_result.append(cleantext)
         if "steps" in obj:
             for iterob in obj['steps']:
                 self.parseResult(iterob, arr_result)
 
 
-ob = Navigation("ru")
-ob.setAPIkey('')
-res = ob.makeDirection('Брянцева, 12', 'Просвещения 33')
-for object_outer in res:
-    print object_outer
+# ob = Navigation("ru")
+# ob.setAPIkey('AIzaSyC7hREX7LxMCWot2qdEj31Q2D6UF-ptPH0')
+# res = ob.makeDirection('Брянцева, 12', 'Просвещения 33')
+# for object_outer in res:
+#     print object_outer
 
 

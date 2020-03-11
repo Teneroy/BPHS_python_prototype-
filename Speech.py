@@ -33,7 +33,7 @@ class SpeechClass:
         self.language = lang
 
 
-ob = SpeechClass("ru")
-aud = ob.record()
-txt = ob.recognize(aud)
-print txt
+# ob = SpeechClass("ru")
+# aud = ob.record()
+# txt = ob.recognize(aud)
+# print txt

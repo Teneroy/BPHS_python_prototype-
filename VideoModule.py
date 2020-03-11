@@ -165,15 +165,15 @@ class VideoModule(Thread):
 # ob = VideoModule()
 # ob.run()
 
-ob = VideoModule(1, 0)
-ob.start()
-ob.setOperationType('TextReading')
-i = 0
-while True:
-    time.sleep(2)
-    i += 1
-    ob.getData().printModData()
-    print "__________________"
+# ob = VideoModule(1, 0)
+# ob.start()
+# ob.setOperationType('TextReading')
+# i = 0
+# while True:
+#     time.sleep(2)
+#     i += 1
+#     ob.getData().printModData()
+#     print "__________________"
 
     # if i % 10 == 0:
     #     ob.setOperationType('TextReading')
