@@ -64,7 +64,7 @@ class TextDetect(Thread):
         return text
 
     def voiceText(self, text):
-        filepath = self.voice.textToFile(text)
+        filepath = self.voice.textToFile(text=text, filename='pcvoice.mp3')
         print filepath
         self.voice.runFile(filepath)
 

@@ -4,14 +4,13 @@ import os
 
 class VoiceRec:
 
-    def __init__(self):
-        self.tts = gTTS(text='Initialize voice recognition', lang='en')
+    def __init__(self, language='en'):
+        self.tts = gTTS(text='Initialize voice recognition', lang=language)
 
-    def textToFile(self, text):
+    def textToFile(self, text, filename, folder=''):
         self.tts.text = text.decode('utf-8')
-        filename = "pcvoice.mp3"
-        self.tts.save(filename)
-        filepath = os.getcwd() + '\\' + filename
+        filepath = os.getcwd() + '\\' + folder + ('\\' if len(folder) > 0 else '') + filename
+        self.tts.save(filepath)
         return filepath
 
     def runFile(self, filepath):
@@ -20,6 +19,7 @@ class VoiceRec:
 
     def setLang(self, lang):
         self.tts.lang = lang
+
 
 # a = VoiceRec()
 # file = a.textToFile("Because they were built very well")
