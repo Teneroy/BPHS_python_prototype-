@@ -110,6 +110,3 @@ class BasicClass(Thread):
                 numt -= 1
                 self.navTrackPlay(numt)
 
-
-ob = BasicClass()
-ob.start()
