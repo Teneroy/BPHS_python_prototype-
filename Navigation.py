@@ -61,10 +61,4 @@ class Navigation:
                 self.parseResult(iterob, arr_result)
 
 
-# ob = Navigation("ru")
-# ob.setAPIkey('AIzaSyC7hREX7LxMCWot2qdEj31Q2D6UF-ptPH0')
-# res = ob.makeDirection('Брянцева, 12', 'Просвещения 33')
-# for object_outer in res:
-#     print object_outer
-
 

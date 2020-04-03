@@ -87,7 +87,7 @@ class BasicClass(Thread):
             print 'No file'
 
     def run(self):
-        self.navigationSettings(key="AIzaSyC7hREX7LxMCWot2qdEj31Q2D6UF-ptPH0", lang="ru")
+        self.navigationSettings(key='', lang="ru")
         self.speechSettings("ru")
         # self.video.start()
         print "Video module has been started"
