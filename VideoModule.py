@@ -5,7 +5,6 @@ from Viewer import Viewer
 from Viewer import viewer_t
 from Viewer import data_arr_t
 from TextDetect import TextDetect
-from TextDetect import textdetect_t
 from DistanceDetect import DistanceDetect
 import time
 import numpy as np
@@ -13,12 +12,11 @@ import cv2
 import copy
 
 
-class videomodule_t(data_arr_t, textdetect_t):
-    def __init__(self, v_ob=data_arr_t(), t_ob=textdetect_t(), priority=-1, operation=-1):
+class videomodule_t(data_arr_t):
+    def __init__(self, v_ob=data_arr_t(), txt='', priority=-1, operation=-1):
         data_arr_t.__init__(self)
-        textdetect_t.__init__(self)
         self.arr = v_ob.arr
-        self.text = t_ob.text
+        self.text = txt
         self.priority = priority
         self.operation = operation
 
@@ -125,7 +123,7 @@ class VideoModule(Thread):
                 # show the output frame
                 cv2.imshow("Frame", frame)
                 #fps.update()
-            self.data = videomodule_t(copy.deepcopy(data), textdetect_t(), 2, 0)
+            self.data = videomodule_t(copy.deepcopy(data), '', 2, 0)
             data.freeArr()
             key = cv2.waitKey(20)
             if key == 27:  # exit on ESC

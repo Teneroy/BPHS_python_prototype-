@@ -86,7 +86,6 @@ class BasicClass(Thread):
         else:
             print 'No file'
 
-
     def run(self):
         self.navigationSettings(key="AIzaSyC7hREX7LxMCWot2qdEj31Q2D6UF-ptPH0", lang="ru")
         self.speechSettings("ru")
@@ -110,8 +109,6 @@ class BasicClass(Thread):
             if keyboard.get_hotkey_name() == "alt":
                 numt -= 1
                 self.navTrackPlay(numt)
-
-
 
 
 ob = BasicClass()

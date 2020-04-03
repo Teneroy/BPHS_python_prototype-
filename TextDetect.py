@@ -6,11 +6,6 @@ from PIL import Image
 import pytesseract
 
 
-class textdetect_t:
-    def __init__(self, text=''):
-        self.text = text
-
-
 class TextDetect(Thread):
     def __init__(self, ln):
         Thread.__init__(self)
