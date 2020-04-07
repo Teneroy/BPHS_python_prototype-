@@ -3,6 +3,7 @@ from threading import Thread
 from VideoModule import VideoModule
 from Navigation import Navigation
 from Speech import SpeechClass
+from Display import Display
 from VoiceRec import VoiceRec
 from PlayAudio import playTrack
 import keyboard
@@ -10,6 +11,7 @@ import enum
 import sys
 import json
 import os
+import copy
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -26,10 +28,11 @@ class Commands(enum.Enum):
 class BasicClass(Thread):
     def __init__(self):
         Thread.__init__(self)
-        # self.video = VideoModule(1, 0)
+        self.video = VideoModule(0, 1)
         self.nav = Navigation("ru")
         self.speech = SpeechClass("ru")
         self.running = True
+        self.audio = Display(lang="ru")
         # self.langfile = 'languages.json'
 
     def navigationSettings(self, key='', lang="en", mode="transit"):
@@ -80,6 +83,8 @@ class BasicClass(Thread):
             vr.textToFile(text=text, filename=('point' + str(i) + '.mp3'), folder='navfiles')
             i += 1
 
+
+
     def navTrackPlay(self, tnum):
         if os.path.isfile(os.getcwd() + '\\' + 'navfiles' + '\\' + 'point' + str(tnum) + '.mp3'):
             playTrack('navfiles', ('point' + str(tnum) + '.mp3'))
@@ -91,10 +96,14 @@ class BasicClass(Thread):
         self.speechSettings("ru")
         # self.video.start()
         print "Video module has been started"
-        playTrack('audio', 'listen.mp3')
         numt = 0
+        self.video.start()
+        self.audio.start()
+        playTrack('audio', 'listen.mp3')
         while self.running:
             if keyboard.get_hotkey_name() == "shift":
+                self.audio.displayMode(False)
+                self.video.setOperationType('')
                 aud = self.speech.record()
                 txt = self.speech.recognize(aud)
                 print txt
@@ -104,9 +113,21 @@ class BasicClass(Thread):
                     self.convertRouteToAudio(direction)
                     numt = 0
             if keyboard.get_hotkey_name() == "ctrl":
+                self.audio.displayMode(False)
+                self.video.setOperationType('')
                 self.navTrackPlay(numt)
                 numt += 1
             if keyboard.get_hotkey_name() == "alt":
+                self.audio.displayMode(False)
+                self.video.setOperationType('')
                 numt -= 1
                 self.navTrackPlay(numt)
+            if keyboard.get_hotkey_name() == "tab":
+                self.audio.displayMode(True)
+                self.video.setOperationType('ObjectDetection')
+            if keyboard.get_hotkey_name() == "space":
+                self.audio.displayMode(True)
+                self.video.setOperationType('TextReading')
+            if self.audio.getDisplayMode():
+                self.audio.sendData(self.video.getData())
 

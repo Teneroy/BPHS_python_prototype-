@@ -6,10 +6,12 @@ from Viewer import viewer_t
 from Viewer import data_arr_t
 from TextDetect import TextDetect
 from DistanceDetect import DistanceDetect
+from PlayAudio import playTrack
 import time
 import numpy as np
 import cv2
 import copy
+import json
 
 
 class videomodule_t(data_arr_t):
@@ -46,11 +48,10 @@ class VideoModule(Thread):
         self.vs = None
         self.vs2 = None
         self.view = Viewer()
-        self.distance = DistanceDetect()
-        self.distance.callibrationFromCamera()
+        #self.distance = DistanceDetect()
+        #self.distance.callibrationFromCamera()
         self.text = TextDetect('eng')
         self.data = videomodule_t()
-        self.operation_type = 'TextReading'
         classes = ["background", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow",
                    "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train",
                    "tvmonitor"]
@@ -92,7 +93,7 @@ class VideoModule(Thread):
             # grab the frame from the threaded video stream and resize it
             # to have a maximum width of 400 pixels
             frame = self.view.getFrame(self.vs, wd)
-            frameR = self.view.getFrame(self.vs2, wd) # little bit weird
+            #frameR = self.view.getFrame(self.vs2, wd) # little bit weird
 
             # grab the frame dimensions and convert it to a blob
             (h, w) = frame.shape[:2]
@@ -116,14 +117,15 @@ class VideoModule(Thread):
                     (startX, startY, endX, endY) = box.astype("int")
                     # draw the prediction on the frame
                     self.view.printPrediction(idx, confidence, frame, startX, startY, endX, endY, COLORS)
-                    dist = self.distance.getDistance(frame, frameR, startX, startY, endX, endY)
+                    #dist = self.distance.getDistance(frame, frameR, startX, startY, endX, endY)
                     #print dist
-                    data.appendElem(viewer_t(self.view.classes[idx], dist))
+                    data.appendElem(viewer_t(self.view.classes[idx], 0))
                     #print data.arr[0].object
                 # show the output frame
                 cv2.imshow("Frame", frame)
                 #fps.update()
             self.data = videomodule_t(copy.deepcopy(data), '', 2, 0)
+            #self.data.printModData()
             data.freeArr()
             key = cv2.waitKey(20)
             if key == 27:  # exit on ESC
@@ -141,14 +143,14 @@ class VideoModule(Thread):
     def run(self):
         print "start"
         self.vs = VideoStream(self.videonum).start()
-        self.vs2 = VideoStream(self.videonum2).start()
+        #self.vs2 = VideoStream(self.videonum2).start()
         print self.vs
         print self.vs2
         self.view.setVideoStream(self.vs)
         self.text.setVideoStream(self.vs)
         self.text.start()
         print "text started"
-        self.distance.preprocessDepthMap()
+        #self.distance.preprocessDepthMap()
         print "start while"
         while self.running:
             #print "thread iteration"
@@ -157,6 +159,8 @@ class VideoModule(Thread):
                 self.textDetectionMode()
             elif self.operation_type == 'ObjectDetection':
                 self.objectDetectionMode()
+            else:
+                continue
         self.vs.stop()
 
 
